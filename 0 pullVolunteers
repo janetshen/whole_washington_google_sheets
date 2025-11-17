@@ -1,99 +1,98 @@
-function populate_volunteers(currentCounty) {
+  function populateVolunteers(currentCounty) {
 
-  // Authentication: Action Network
-  const url_root = 'https://actionnetwork.org/api/v2/people?filter=postal_code%20eq%20';
-  const apiToken = 'retrieve action token from https://admin.actionnetwork.org/groups/{org url name here, i.e. whole-washington}/apis';
-  const options = { // credits to user5868253 on Stackoverflow
-     "headers" : {
-       "Content-Type": "application/json",
-       "OSDI-API-Token": apiToken
-     }
-  };
-
-  // Grab sheet and zips
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName(currentCounty);
-  const zips = buildLookupTable()[currentCounty];
-
-  // One array per zip
-  zips.forEach((zip) => {
-
-    // Find latest row of data, figure out last zip code
-    let lastRow = sheet.getLastRow(); //INT
-    let lastZip = lastRow > 1 ? sheet.getRange(lastRow, 1).getValue() : undefined;
-
-    // If existing zip code, fast forward to next zip code in array
-    if (zip > lastZip) {
-
-      // Retrieve and measure 2D array of volunteer information 
-      outputArray = parse_volunteers(zip, lastZip);
-      console.log(outputArray);
-
-      if (outputArray.length > 0) {
-        let outputHeight = outputArray.length;
-        let outputWidth = outputArray[0].length;
-        console.log(outputHeight, outputWidth)
-        let targetRange = sheet.getRange(lastRow + 1, 1, outputHeight, outputWidth); //row, column, row column
-        targetRange.setValues(outputArray);
+    // Authentication: Action Network
+    const url_root = 'https://actionnetwork.org/api/v2/people?filter=postal_code%20eq%20';
+    const apiToken = '51d2093e11e115adec8a1cbabcec472d';
+    const options = { // credits to user5868253 on Stackoverflow
+      "headers" : {
+        "Content-Type": "application/json",
+        "OSDI-API-Token": apiToken
       }
+    };
+
+    // Grab sheet and zips
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(currentCounty);
+    const zips = buildLookupTable()[currentCounty];
+
+    // One array per zip
+    zips.forEach((zip) => {
+
+      // Find latest row of data, figure out last zip code
+      let lastRow = sheet.getLastRow(); //INT
+      let lastZip = lastRow > 1 ? sheet.getRange(lastRow, 1).getValue() : 0;
+
+      console.log(zip, lastRow, lastZip);
+
+      // If existing zip code, fast forward to next zip code in array
+      if (zip > lastZip) {
+
+        console.log('zip check passed');
+
+        // Retrieve and measure 2D array of volunteer information 
+        outputArray = parse_volunteers(zip, lastZip);
+        console.log(outputArray);
+
+        if (outputArray.length > 0) {
+          let outputHeight = outputArray.length;
+          let outputWidth = outputArray[0].length;
+          console.log(outputHeight, outputWidth)
+          let targetRange = sheet.getRange(lastRow + 1, 1, outputHeight, outputWidth); //row, column, row column
+          targetRange.setValues(outputArray);
+        }
+      }
+    });
+
+    function parse_volunteers(currentZip) {
+      console.log(currentZip);
+
+      // Pagination
+      let lastRestAPIPage = false;
+      let nextURL = url_root + currentZip;
+
+      // Output array
+      let outputArray = [];
+
+      // Make and process API calls
+      while (!lastRestAPIPage) {
+
+        // Pagination + First API Call
+        let response = UrlFetchApp.fetch(nextURL, options);
+        let json = response.getContentText(); // get the response content as text
+        let people = JSON.parse(json); //parse text into json
+        let [volunteer_id, first_name, last_name, email, phone_number, city, tags, crmLink] = [0, '', '', '', '', '', '', '', ''];
+
+        // Move url forward if next page exists
+        nextURL = people['_links']?.['next']?.['href'] ?? 'last page';
+      
+        // Loop through people
+        people['_embedded']['osdi:people'].forEach((person) => {
+
+          // Subscription Status Check
+          emailYes = person['email_addresses']?.[0]?.['status'] ?? 'not found' === 'subscribed';
+          callYes = person['phone_numbers']?.[0]?.['status'] ?? 'not found' === 'subscribed';
+          email = emailYes ? person['email_addresses']?.[0]?.['address'] : undefined; // verify subscription status
+          phone_number = callYes ? person['phone_numbers']?.[0]?.['number'] : undefined; // verify subscription status
+          if (!email && !phone_number) {return} ;
+          if (!person['postal_addresses'][0]['primary']) { Logger.log(person['postal_addresses'])};
+
+          // Extract contact details
+          volunteer_id = person['identifiers'].find(identifier => identifier.startsWith('action_network')).split(':')[1];
+          first_name = person['given_name'] ?? '';
+          last_name = person['family_name'] ?? '';      
+          city = person['postal_addresses'][0]['locality'];
+          zip = currentZip; //person['postal_addresses'][0]['postal_code'];
+          county = currentCounty; //person['custom_fields']['County']; //undefined counties to be filled out later
+          console.log(person);
+          crmLink = '=HYPERLINK("https://admin.actionnetwork.org/user_search/group/whole-washington/' + volunteer_id + '", "click to add notes for ' + first_name.replace(/[^a-zA-Z ]/g, "") + ' ' + last_name.replace(/[^a-zA-Z ]/g, "") + '")';
+          outputArray.push([currentZip, volunteer_id, first_name, last_name, email, phone_number, city, tags, crmLink]);
+        })
+
+          // Check for last page
+          lastRestAPIPage = nextURL === 'last page';
+        }
+
+        return outputArray;
     }
-  });
 
-  function parse_volunteers(currentZip, lastZipPage) {
-    console.log(currentZip);
-
-    // Pagination
-    let lastRestAPIPage = false;
-    let nextURL = url_root + currentZip;
-
-    // Output array
-    let outputArray = [];
-
-    // Make and process API calls
-    while (!lastRestAPIPage) {
-
-      // Pagination + First API Call
-      let response = UrlFetchApp.fetch(nextURL, options);
-      let json = response.getContentText(); // get the response content as text
-      let people = JSON.parse(json); //parse text into json
-      let [volunteer_id, first_name, last_name, email, phone_number, city, tags, crmLink] = [0, '', '', '', '', '', '', '', ''];
-
-      // Track page number
-      //if (!nextURL.endsWith('eq%20' + currentZip)) {
-      //  page = nextURL.split('&page=')[1];
-      //}
-
-      // Move url forward if next page exists
-      nextURL = people['_links']?.['next']?.['href'] ?? 'last page';
-    
-      // Loop through people
-      people['_embedded']['osdi:people'].forEach((person) => {
-
-        // Subscription Status Check
-        emailYes = person['email_addresses']?.[0]?.['status'] ?? 'not found' === 'subscribed';
-        callYes = person['phone_numbers']?.[0]?.['status'] ?? 'not found' === 'subscribed';
-        email = emailYes ? person['email_addresses']?.[0]?.['address'] : undefined; // verify subscription status
-        phone_number = callYes ? person['phone_numbers']?.[0]?.['number'] : undefined; // verify subscription status
-        if (!email && !phone_number) {return} ;
-        if (!person['postal_addresses'][0]['primary']) { Logger.log(person['postal_addresses'])};
-
-        // Extract contact details
-        volunteer_id = person['identifiers'].find(identifier => identifier.startsWith('action_network')).split(':')[1];
-        first_name = person['given_name'];
-        last_name = person['family_name'];      
-        city = person['postal_addresses'][0]['locality'];
-        zip = currentZip; //person['postal_addresses'][0]['postal_code'];
-        county = currentCounty; //person['custom_fields']['County']; //undefined counties to be filled out later
-        crmLink = '=HYPERLINK("https://admin.actionnetwork.org/user_search/group/whole-washington/' + volunteer_id + '", "click to add notes for ' + first_name.replace(/[^a-zA-Z ]/g, "") + ' ' + last_name.replace(/[^a-zA-Z ]/g, "") + '")';
-        //sheet.appendRow([volunteer_id, first_name, last_name, email, phone_number, city, zip, county, tags, crmLink]);
-        outputArray.push([currentZip, volunteer_id, first_name, last_name, email, phone_number, city, tags, crmLink]);
-      })
-
-        // Check for last page
-        lastRestAPIPage = nextURL === 'last page';
-      }
-
-      return outputArray;
   }
-
-}
