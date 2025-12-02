@@ -2,13 +2,7 @@
 
     // Authentication: Action Network
     const url_root = 'https://actionnetwork.org/api/v2/people?filter=postal_code%20eq%20';
-    const apiToken = '51d2093e11e115adec8a1cbabcec472d';
-    const options = { // credits to user5868253 on Stackoverflow
-      "headers" : {
-        "Content-Type": "application/json",
-        "OSDI-API-Token": apiToken
-      }
-    };
+    const options = getApiOptions();
 
     // Grab sheet and zips
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -16,35 +10,39 @@
     const zips = buildLookupTable()[currentCounty];
 
     // One array per zip
-    zips.forEach((zip) => {
+    for (i=0; i<zips.length; i++) {
 
       // Find latest row of data, figure out last zip code
+      const zip = zips[i];
       let lastRow = sheet.getLastRow(); //INT
       let lastZip = lastRow > 1 ? sheet.getRange(lastRow, 1).getValue() : 0;
-
-      console.log(zip, lastRow, lastZip);
 
       // If existing zip code, fast forward to next zip code in array
       if (zip > lastZip) {
 
-        console.log('zip check passed');
+        console.log('new zip found: ', zip);
 
         // Retrieve and measure 2D array of volunteer information 
-        outputArray = parse_volunteers(zip, lastZip);
-        console.log(outputArray);
+        outputArray = parseVolunteers(zip, lastZip);
+        console.log('New information for ', zip, ': ', outputArray);
 
         if (outputArray.length > 0) {
           let outputHeight = outputArray.length;
           let outputWidth = outputArray[0].length;
-          console.log(outputHeight, outputWidth)
           let targetRange = sheet.getRange(lastRow + 1, 1, outputHeight, outputWidth); //row, column, row column
           targetRange.setValues(outputArray);
+
+          // if is last zip in county, cap off sheet with ridiculously high zip code
+          if (i+1 == zips.length) {
+            const newRow = sheet.getLastRow() + 1;
+            const newTargetRange = sheet.getRange(newRow, 1, 1, 1);
+            newTargetRange.setValue(999999);
+          }
         }
       }
-    });
+    }
 
-    function parse_volunteers(currentZip) {
-      console.log(currentZip);
+    function parseVolunteers(currentZip) {
 
       // Pagination
       let lastRestAPIPage = false;
@@ -74,7 +72,6 @@
           email = emailYes ? person['email_addresses']?.[0]?.['address'] : undefined; // verify subscription status
           phone_number = callYes ? person['phone_numbers']?.[0]?.['number'] : undefined; // verify subscription status
           if (!email && !phone_number) {return} ;
-          if (!person['postal_addresses'][0]['primary']) { Logger.log(person['postal_addresses'])};
 
           // Extract contact details
           volunteer_id = person['identifiers'].find(identifier => identifier.startsWith('action_network')).split(':')[1];
@@ -83,7 +80,6 @@
           city = person['postal_addresses'][0]['locality'];
           zip = currentZip; //person['postal_addresses'][0]['postal_code'];
           county = currentCounty; //person['custom_fields']['County']; //undefined counties to be filled out later
-          console.log(person);
           crmLink = '=HYPERLINK("https://admin.actionnetwork.org/user_search/group/whole-washington/' + volunteer_id + '", "click to add notes for ' + first_name.replace(/[^a-zA-Z ]/g, "") + ' ' + last_name.replace(/[^a-zA-Z ]/g, "") + '")';
           outputArray.push([currentZip, volunteer_id, first_name, last_name, email, phone_number, city, tags, crmLink]);
         })
