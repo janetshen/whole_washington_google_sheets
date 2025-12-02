@@ -1,0 +1,168 @@
+function fillPage(countyName) {
+  populateVolunteers(countyName);
+}
+
+function all(){
+  const lookupTable = buildLookupTable();
+  const counties = Object.keys(lookupTable);
+  counties.forEach((county) => {
+    console.log(county);
+    fillPage(county);
+  });
+}
+
+function adams(){
+  fillPage('Adams County');
+}
+
+function asotin(){
+  fillPage('Asotin County');
+}
+
+function benton(){
+  fillPage('Benton County');
+}
+
+function chelan(){
+  fillPage('Chelan County');
+}
+
+function clallam(){
+  fillPage('Clallam County');
+}
+
+function clark(){
+  fillPage('Clark County');
+}
+
+function columbia(){
+  fillPage('Columbia County');
+}
+
+function cowlitz(){
+  fillPage('Cowlitz County');
+}
+
+function douglas(){
+  fillPage('Douglas County');
+}
+
+function ferry(){
+  fillPage('Ferry County');
+}
+
+function franklin(){
+  fillPage('Franklin County');
+}
+
+function garfield(){
+  fillPage('Garfield County');
+}
+
+function grant(){
+  fillPage('Grant County');
+}
+
+function grays(){
+  fillPage('Grays Harbor County');
+}
+
+function island(){
+  fillPage('Island County');
+}
+
+function jefferson(){
+  fillPage('Jefferson County');
+}
+
+function king(){ // needs to be run twice to get all volunteers
+  fillPage('King County');
+}
+
+function kitsap(){
+  fillPage('Kitsap County');
+}
+
+function kittitas(){
+  fillPage('Kittitas County');
+}
+
+function klickitat(){
+  fillPage('Klickitat County');
+}
+
+function lewis(){
+  fillPage('Lewis County');
+}
+
+function lincoln(){
+  fillPage('Lincoln County');
+}
+
+function mason(){
+  fillPage('Mason County');
+}
+
+function okanogan(){
+  fillPage('Okanogan County');
+}
+
+function pacific(){
+  fillPage('Pacific County');
+}
+
+function pend(){
+  fillPage('Pend Oreille County');
+}
+
+function pierce(){
+  fillPage('Pierce County');
+}
+
+function sanJuan(){
+  fillPage('San Juan County');
+}
+
+function skagit(){
+  fillPage('Skagit County');
+}
+
+function skamania(){
+  fillPage('Skamania County');
+}
+
+function snohomish(){
+  fillPage('Snohomish County');
+}
+
+function spokane(){
+  fillPage('Spokane County');
+}
+
+function stevens(){
+  fillPage('Stevens County');
+}
+
+function thurston(){
+  fillPage('Thurston County');
+}
+
+function wahkiakum(){
+  fillPage('Wahkiakum County');
+}
+
+function walla(){
+  fillPage('Walla Walla County');
+}
+
+function whatcom(){
+  fillPage('Whatcom County');
+}
+
+function whitman(){
+  fillPage('Whitman County');
+}
+
+function yakima(){
+  fillPage('Yakima County');
+}
