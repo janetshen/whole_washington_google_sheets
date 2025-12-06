@@ -17,8 +17,7 @@
       let lastRow = sheet.getLastRow(); //INT
       let lastZip = lastRow > 1 ? sheet.getRange(lastRow, 1).getValue() : 0;
 
-      // If existing zip code, fast forward to next zip code in array
-      if (zip > lastZip) {
+      if (zip > lastZip) { // If zip code already imported, fast forward to next zip code in array
 
         console.log('new zip found: ', zip);
 
@@ -31,14 +30,13 @@
           let outputWidth = outputArray[0].length;
           let targetRange = sheet.getRange(lastRow + 1, 1, outputHeight, outputWidth); //row, column, row column
           targetRange.setValues(outputArray);
-
-          // if is last zip in county, cap off sheet with ridiculously high zip code
-          if (i+1 == zips.length) {
-            const newRow = sheet.getLastRow() + 1;
-            const newTargetRange = sheet.getRange(newRow, 1, 1, 1);
-            newTargetRange.setValue(999999);
-          }
         }
+      }
+
+      // If last zip, cap off list
+      if (i == zips.length-1) {
+        let targetRange = sheet.getRange(sheet.getLastRow() + 1, 1); //row, column
+        targetRange.setValue(999999);
       }
     }
 
@@ -81,6 +79,7 @@
           zip = currentZip; //person['postal_addresses'][0]['postal_code'];
           county = currentCounty; //person['custom_fields']['County']; //undefined counties to be filled out later
           crmLink = '=HYPERLINK("https://admin.actionnetwork.org/user_search/group/whole-washington/' + volunteer_id + '", "click to add notes for ' + first_name.replace(/[^a-zA-Z ]/g, "") + ' ' + last_name.replace(/[^a-zA-Z ]/g, "") + '")';
+          tags = person['_links']['osdi:taggings']['href'];
           outputArray.push([currentZip, volunteer_id, first_name, last_name, email, phone_number, city, tags, crmLink]);
         })
 
