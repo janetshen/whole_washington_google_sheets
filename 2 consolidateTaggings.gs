@@ -1,3 +1,5 @@
+// Deleted as of 12.6.2025
+
 function consolidateTaggings(){
 
   const ss = SpreadsheetApp.getActiveSpreadsheet(); //get active spreadsheet (bound to this script)
