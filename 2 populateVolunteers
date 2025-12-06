@@ -1,3 +1,5 @@
+// Deleted / migrated to "2 populateCounties" as of 12.06.2025
+
 function fillPage(countyName) {
   populateVolunteers(countyName);
 }
