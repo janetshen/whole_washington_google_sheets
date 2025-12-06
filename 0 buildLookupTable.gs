@@ -20,8 +20,8 @@ function buildLookupTable(){
 
     let zips = lookupTable[county];
     zips.push(zip);
+    //if (i==values.length-1) {zips.push(999999)} // if is last zip in county, cap off sheet with ridiculously high zip code
     lookupTable[county] = zips;
-
   }
 
   return lookupTable;
