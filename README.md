@@ -2,10 +2,16 @@
 An attempt at automating volunteer categorization by county in Google Sheets
 
 # How to set up from scratch
+## Manual stuff that needs to be manually updated once every few months
 1. In a brand new Google Sheets document, name the first sheet 'County Lookup' (Not the entire spreadsheet, just the sheet in the bottom left)
-2. Then navigate to Extensions > Apps Script
-3. You'll start with a blank file called "Code.gs" with some example code.  Ignore it or delete it
-4. Repeat for each file in this repo (take `0 apiAuth.gs` for example):
+2. Download the free .csv file from here (no email signup needed): https://www.unitedstateszipcodes.org/zip-code-database/
+3. Copy/paste just the zip code and county columns from the .csv into County Lookup, naming the columns "zip" and "county"
+4. Sort 'County Lookup' by the county column, so the zip codes are grouped by county
+
+## Copy code over from this repo
+1. Then navigate to Extensions > Apps Script
+2. You'll start with a blank file called "Code.gs" with some example code.  Ignore it or delete it
+3. Repeat for each file in this repo (take `0 apiAuth.gs` for example):
   1. Click "+" to create a new ".gs" file and name it `0 apiAuth`
   2. Copy/paste the contents of "0 apiAuth.gs" over the example code
 
