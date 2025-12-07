@@ -4,9 +4,9 @@ function populateTags(){
   const tagLookup = buildTagLookupTable();
   // console.log(tagLookup)
 
-  // if (Object.keys(tagLookup).length === 0) {
-  //   throw new Error("Tag lookup sheet not built. Please run pullTags.gs");
-  // }
+  if (Object.keys(tagLookup).length === 0) {
+     throw new Error("Tag lookup sheet not built. Please run pullTags.gs");
+  }
 
   // Grab Google Sheet file
   const ss = SpreadsheetApp.getActiveSpreadsheet(); //get active spreadsheet (bound to this script)
