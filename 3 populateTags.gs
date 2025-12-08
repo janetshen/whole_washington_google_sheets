@@ -35,12 +35,12 @@ function populateTags(){
 
     // Check if whole sheet can be skipped
     if (!tagColumnValues[tagColumnValues.length-1][0].startsWith('https')) {
-      console.warn(county + 'as already been tagged or does not have correct starting tag column format');
+      console.warn(county + ' has already been tagged or does not have correct starting tag column format');
       return;
     }
 
     // Create chunks in case list too long
-    const chunkSize = 10;
+    const chunkSize = 100;
     let chunksList = [];
     let indexArray = Array.from(Array(tagColumnValues.length).keys()); // [0, 1, 2...]
     for (let i = 0; i < indexArray.length; i += chunkSize) {
@@ -106,18 +106,18 @@ function populateTags(){
         } else {
           newTagValues.push([urlMaybe]);
         }
-    }
+      }
 
-    //This console log showcases the rows in the sheet that were just iterated over.
-    // the end value has is one less than the start value to as to actually count the first row we put data in
-    // console.log((chunkStart + 2)+" - " + (chunkStart + 1 + newTagValues.length));
-    // console.log(newTagValues);
+      //This console log showcases the rows in the sheet that were just iterated over.
+      // the end value has is one less than the start value to as to actually count the first row we put data in
+      // console.log((chunkStart + 2)+" - " + (chunkStart + 1 + newTagValues.length));
+      // console.log(newTagValues);
 
-    // Finally, overwrite urls with tag lists
-    let outputRange = sheet.getRange(chunkStart+2, tagColumnID+1, newTagValues.length);
-    outputRange.setValues(newTagValues);
-    // Clears array for next chunk
-    newTagValues = [];
+      // Finally, overwrite urls with tag lists
+      let outputRange = sheet.getRange(chunkStart+2, tagColumnID+1, newTagValues.length);
+      outputRange.setValues(newTagValues);
+      // Clears array for next chunk
+      newTagValues = [];
     }
   })
 }
