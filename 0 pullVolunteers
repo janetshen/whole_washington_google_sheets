@@ -1,4 +1,4 @@
-  function populateVolunteers(currentCounty) {
+  function pullVolunteers(currentCounty) {
 
     // Authentication: Action Network
     const url_root = 'https://actionnetwork.org/api/v2/people?filter=postal_code%20eq%20';
@@ -23,7 +23,7 @@
 
         // Retrieve and measure 2D array of volunteer information 
         outputArray = parseVolunteers(zip, lastZip);
-        console.log('New information for ', zip, ': ', outputArray);
+        console.log('New information for ', zip);
 
         if (outputArray.length > 0) {
           let outputHeight = outputArray.length;
@@ -56,22 +56,23 @@
         let response = UrlFetchApp.fetch(nextURL, options);
         let json = response.getContentText(); // get the response content as text
         let people = JSON.parse(json); //parse text into json
+        var peopleArray = people['_embedded']['osdi:people'];
         let [volunteer_id, first_name, last_name, email, phone_number, city, tags, crmLink] = [0, '', '', '', '', '', '', '', ''];
 
         // Move url forward if next page exists
         nextURL = people['_links']?.['next']?.['href'] ?? 'last page';
-      
-        // Loop through people
-        people['_embedded']['osdi:people'].forEach((person) => {
+
+        for (let i = 0; i < peopleArray.length; i++) {
+            const person = peopleArray[i];
 
           // Subscription Status Check
-          emailYes = person['email_addresses']?.[0]?.['status'] ?? 'not found' === 'subscribed';
-          callYes = person['phone_numbers']?.[0]?.['status'] ?? 'not found' === 'subscribed';
-          email = emailYes ? person['email_addresses']?.[0]?.['address'] : undefined; // verify subscription status
-          phone_number = callYes ? person['phone_numbers']?.[0]?.['number'] : undefined; // verify subscription status
-          if (!email && !phone_number) {return} ;
-
+          emailYes = (person['email_addresses']?.[0]?.['status'] ?? 'not found') === 'subscribed';
+          callYes = (person['phone_numbers']?.[0]?.['status'] ?? 'not found') === 'subscribed';
+          if (!emailYes && !callYes) {continue} ;
+          
           // Extract contact details
+          email = person['email_addresses'][0]['address']; 
+          phone_number = callYes ? person['phone_numbers']?.[0]?.['number'] : undefined; // verify subscription status
           volunteer_id = person['identifiers'].find(identifier => identifier.startsWith('action_network')).split(':')[1];
           first_name = person['given_name'] ?? '';
           last_name = person['family_name'] ?? '';      
@@ -81,7 +82,7 @@
           crmLink = '=HYPERLINK("https://admin.actionnetwork.org/user_search/group/whole-washington/' + volunteer_id + '", "click to add notes for ' + first_name.replace(/[^a-zA-Z ]/g, "") + ' ' + last_name.replace(/[^a-zA-Z ]/g, "") + '")';
           tags = person['_links']['osdi:taggings']['href'];
           outputArray.push([currentZip, volunteer_id, first_name, last_name, email, phone_number, city, tags, crmLink]);
-        })
+        }
 
           // Check for last page
           lastRestAPIPage = nextURL === 'last page';
