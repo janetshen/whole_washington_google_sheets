@@ -28,8 +28,8 @@ function populateTags(){
     let newTagValues = [];
 
     // Check if whole sheet can be skipped
-    if (tagColumnValues[tagColumnValues.length-1][0].length > 0) {
-      console.warn(county + ' has already been tagged');
+    if (!tagColumnValues[tagColumnValues.length-1][0].startsWith('https')) {
+      console.warn(county + ' has already been tagged or does not contain urls starting with https');
       return;
     }
 
